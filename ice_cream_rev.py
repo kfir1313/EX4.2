@@ -19,6 +19,8 @@ matplotlib.use("QtAgg")
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
+from About import AboutWindow
+
 
 class MainWindow(QMainWindow):
     """
@@ -36,6 +38,7 @@ class MainWindow(QMainWindow):
         self.selected_file_path: str = ""
         self.temperature = []
         self.revenue = []
+        self.about_window = None
 
         # Tracking state for drag-to-pan & zoom reset
         self._pan_start = None
@@ -94,6 +97,12 @@ class MainWindow(QMainWindow):
         self.save_graph_btn.setCursor(Qt.PointingHandCursor)
         self.save_graph_btn.clicked.connect(self.save_graph)
         controls_layout.addWidget(self.save_graph_btn)
+
+        # About button
+        self.about_btn = QPushButton("About...")
+        self.about_btn.setCursor(Qt.PointingHandCursor)
+        self.about_btn.clicked.connect(self.open_about)
+        controls_layout.addWidget(self.about_btn)
 
         main_layout.addLayout(controls_layout)
 
@@ -188,6 +197,14 @@ class MainWindow(QMainWindow):
                 self.figure.savefig(file_path, dpi=300, bbox_inches="tight")
             except Exception as e:
                 pass  # Error handling can be done here if needed
+
+    def open_about(self):
+        """Open the About window in a new window."""
+        if self.about_window is None:
+            self.about_window = AboutWindow()
+        self.about_window.show()
+        self.about_window.raise_()
+        self.about_window.activateWindow()
 
     def _on_scroll_zoom(self, event):
         """Zoom in or out using the mouse scroll wheel centered on cursor."""
