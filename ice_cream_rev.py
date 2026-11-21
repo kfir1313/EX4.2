@@ -10,7 +10,6 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QMainWindow,
     QPushButton,
-    QStatusBar,
     QVBoxLayout,
     QWidget,
 )
@@ -27,7 +26,7 @@ class MainWindow(QMainWindow):
     a zoomable Matplotlib canvas (without toolbar), and graph export capability.
     """
 
-    def __init__(self, stylesheet_path: str = "styles.qss") -> None:
+    def __init__(self, stylesheet_path: str = "styles.qss"):
         super().__init__()
 
         self.setWindowTitle("Data Plotter & Visualizer")
@@ -35,6 +34,8 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(700, 500)
 
         self.selected_file_path: str = ""
+        self.temperature = []
+        self.revenue = []
 
         # Tracking state for drag-to-pan & zoom reset
         self._pan_start = None
@@ -48,13 +49,10 @@ class MainWindow(QMainWindow):
         self._setup_ui()
 
         # Display sine wave on the graph at startup
-        self.plot_sine()
+        self.plot_graph()
 
-        self.statusBar().showMessage(
-            "Ready. Zoom: Scroll wheel | Pan: Click & drag | Reset view: Double-click"
-        )
 
-    def load_stylesheet(self, stylesheet_path: str) -> None:
+    def load_stylesheet(self, stylesheet_path: str):
         """Load and apply QSS stylesheet from a file."""
         qss_file = Path(stylesheet_path)
         if not qss_file.is_absolute():
@@ -66,7 +64,7 @@ class MainWindow(QMainWindow):
         else:
             print(f"Warning: Stylesheet file not found at: {qss_file}")
 
-    def _setup_ui(self) -> None:
+    def _setup_ui(self):
         """Set up UI layout and widgets."""
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
@@ -112,31 +110,32 @@ class MainWindow(QMainWindow):
         self.canvas.mpl_connect("button_release_event", self._on_button_release)
         self.canvas.mpl_connect("motion_notify_event", self._on_motion_notify)
 
-        # Status Bar
-        self.setStatusBar(QStatusBar(self))
-
-    def plot_sine(self) -> None:
-        """Plot a sine function on the zoomable graph."""
+    def plot_graph(self):
+        """Plot a zoomable graph from .csv file."""
         self.ax.clear()
         self.figure.set_facecolor("#f3f5f9")
         self.ax.set_facecolor("#ffffff")
 
-        # Generate sine wave data points
-        x = np.linspace(0, 4 * np.pi, 500)
-        y = np.sin(x)
+        # Generate data points
+        x = self.temperature
+        y = self.revenue
+  
+        # Plot the data and, when there are enough points, its linear fit
+        self.ax.scatter(x, y, color="#1f77b4", s=1)
 
-        # Plot the sine curve
-        self.ax.plot(x, y, label=r"$y = \sin(x)$", color="#1f77b4", linewidth=2)
-        self.ax.set_title("Sine Function", fontsize=13, pad=10)
-        self.ax.set_xlabel("x (radians)", fontsize=10)
-        self.ax.set_ylabel("sin(x)", fontsize=10)
+        # Plot the graph
+        self.ax.set_title('Ice Cream sales revenue by outside temperature')
+        self.ax.set_xlabel("temperature (C)", fontsize=10)
+        self.ax.set_ylabel("revenue ($)", fontsize=10)
         self.ax.grid(True, linestyle="--", color="#dce3ed", alpha=0.9)
         self.ax.tick_params(colors="#526176")
         self.ax.title.set_color("#202b3c")
         self.ax.xaxis.label.set_color("#526176")
         self.ax.yaxis.label.set_color("#526176")
-        for spine in self.ax.spines.values():
+        for side, spine in self.ax.spines.items():
             spine.set_color("#cbd3df")
+            if side in ("top", "right"):
+                spine.set_visible(False)
 
         self.figure.tight_layout()
         self.canvas.draw()
@@ -145,7 +144,9 @@ class MainWindow(QMainWindow):
         self._initial_xlim = self.ax.get_xlim()
         self._initial_ylim = self.ax.get_ylim()
 
-    def select_file(self) -> None:
+
+
+    def select_file(self):
         """Allow user to select a file via a file dialog."""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
@@ -157,9 +158,17 @@ class MainWindow(QMainWindow):
         if file_path:
             self.selected_file_path = file_path
             self.file_path_edit.setText(file_path)
-            self.statusBar().showMessage(f"Selected file: {Path(file_path).name}")
 
-    def save_graph(self) -> None:
+        with open(self.selected_file_path, 'r') as f:
+            next(f)
+            for line in f:
+                temp,rev = line.strip().split(',')
+                self.temperature.append(float(temp))
+                self.revenue.append(int(rev))
+        print(f'{len(self.temperature)}, {len(self.revenue)}')
+        self.plot_graph()
+
+    def save_graph(self):
         """Allow user to save the current graph to a file."""
         file_path, _ = QFileDialog.getSaveFileName(
             self,
@@ -171,11 +180,10 @@ class MainWindow(QMainWindow):
         if file_path:
             try:
                 self.figure.savefig(file_path, dpi=300, bbox_inches="tight")
-                self.statusBar().showMessage(f"Graph saved: {Path(file_path).name}")
             except Exception as e:
-                self.statusBar().showMessage(f"Error saving graph: {e}")
+                pass  # Error handling can be done here if needed
 
-    def _on_scroll_zoom(self, event) -> None:
+    def _on_scroll_zoom(self, event):
         """Zoom in or out using the mouse scroll wheel centered on cursor."""
         if event.inaxes != self.ax:
             return
@@ -204,7 +212,7 @@ class MainWindow(QMainWindow):
         self.ax.set_ylim([ydata - new_height * (1 - rely), ydata + new_height * rely])
         self.canvas.draw_idle()
 
-    def _on_button_press(self, event) -> None:
+    def _on_button_press(self, event):
         """Handle mouse clicks: double-click to reset, drag to pan."""
         if event.inaxes != self.ax:
             return
@@ -214,18 +222,17 @@ class MainWindow(QMainWindow):
             self.ax.set_xlim(self._initial_xlim)
             self.ax.set_ylim(self._initial_ylim)
             self.canvas.draw_idle()
-            self.statusBar().showMessage("View reset to original limits.")
             return
 
         # Start panning on left or middle button click
         if event.button in (1, 2):
             self._pan_start = (event.x, event.y, self.ax.get_xlim(), self.ax.get_ylim())
 
-    def _on_button_release(self, event) -> None:
+    def _on_button_release(self, event):
         """End panning on button release."""
         self._pan_start = None
 
-    def _on_motion_notify(self, event) -> None:
+    def _on_motion_notify(self, event):
         """Handle mouse drag to pan across axes."""
         if self._pan_start is None or event.inaxes != self.ax:
             return
@@ -244,7 +251,7 @@ class MainWindow(QMainWindow):
         self.canvas.draw_idle()
 
 
-def main() -> None:
+def main():
     """Application entry point."""
     app = QApplication.instance()
     if app is None:
