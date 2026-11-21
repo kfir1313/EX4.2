@@ -51,7 +51,7 @@ class MainWindow(QMainWindow):
         # Build interface
         self._setup_ui()
 
-        # Display sine wave on the graph at startup
+        # Display the graph area at startup
         self.plot_graph()
 
 
@@ -106,7 +106,7 @@ class MainWindow(QMainWindow):
 
         main_layout.addLayout(controls_layout)
 
-        # --- Matplotlib Canvas (No Toolbar) ---
+        # --- Matplotlib Canvas ---
         self.figure = Figure(figsize=(8, 5), dpi=100)
         self.canvas = FigureCanvas(self.figure)
         self.ax = self.figure.add_subplot(111)
@@ -133,10 +133,20 @@ class MainWindow(QMainWindow):
         self.ax.scatter(x, y, color="#1f77b4", s=1)
 
         if len(x) >= 2:
-            coefficients = np.polyfit(x, y, 1)
+            slope, intercept = np.polyfit(x, y, 1)
             x_fit = np.linspace(min(x), max(x), 200)
-            y_fit = np.polyval(coefficients, x_fit)
+            y_fit = slope * x_fit + intercept
             self.ax.plot(x_fit, y_fit, color="#e4572e", linewidth=1)
+
+            sign = "+" if intercept >= 0 else "−"
+            equation = f"y = {slope:.2f}x {sign} {abs(intercept):.2f}"
+            self.ax.text(
+                0.03, 0.97, equation,
+                transform=self.ax.transAxes,
+                va="top",
+                color="#202b3c",
+                bbox={"facecolor": "white", "edgecolor": "#cbd3df", "alpha": 0.9},
+            )
 
         # Plot the graph
         self.ax.set_title('Ice Cream sales revenue by outside temperature')
@@ -174,14 +184,17 @@ class MainWindow(QMainWindow):
             self.selected_file_path = file_path
             self.file_path_edit.setText(file_path)
 
-        with open(self.selected_file_path, 'r') as f:
-            next(f)
-            for line in f:
-                temp,rev = line.strip().split(',')
-                self.temperature.append(float(temp))
-                self.revenue.append(int(rev))
-        print(f'{len(self.temperature)}, {len(self.revenue)}')
-        self.plot_graph()
+            self.temperature.clear()
+            self.revenue.clear()
+
+            with open(self.selected_file_path, 'r') as f:
+                next(f)
+                for line in f:
+                    temp,rev = line.strip().split(',')
+                    self.temperature.append(float(temp))
+                    self.revenue.append(float(rev))
+            print(f'{len(self.temperature)}, {len(self.revenue)}')
+            self.plot_graph()
 
     def save_graph(self):
         """Allow user to save the current graph to a file."""
