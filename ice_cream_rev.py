@@ -123,6 +123,12 @@ class MainWindow(QMainWindow):
         # Plot the data and, when there are enough points, its linear fit
         self.ax.scatter(x, y, color="#1f77b4", s=1)
 
+        if len(x) >= 2:
+            coefficients = np.polyfit(x, y, 1)
+            x_fit = np.linspace(min(x), max(x), 200)
+            y_fit = np.polyval(coefficients, x_fit)
+            self.ax.plot(x_fit, y_fit, color="#e4572e", linewidth=1)
+
         # Plot the graph
         self.ax.set_title('Ice Cream sales revenue by outside temperature')
         self.ax.set_xlabel("temperature (C)", fontsize=10)
