@@ -1,7 +1,7 @@
 from pathlib import Path
 import webbrowser
 
-from PySide6.QtCore import QSize
+from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
@@ -67,14 +67,14 @@ class AboutWindow(QWidget):
         )
 
         divider = QFrame(card)
-        divider.setGeometry(28, 304, 300, 1)
+        divider.setGeometry(28, 300, 300, 1)
         divider.setStyleSheet("""
             background-color: #22314a;
             max-height: 1px;
         """)
 
-        contact_label = QLabel("GET IN TOUCH", card)
-        contact_label.setGeometry(28, 326, 300, 18)
+        contact_label = QLabel("GET IN TOUCH / PROJECT", card)
+        contact_label.setGeometry(28, 318, 300, 18)
         contact_label.setStyleSheet("""
             color: #71839d;
             font-size: 10px;
@@ -83,7 +83,7 @@ class AboutWindow(QWidget):
         """)
 
         self.mail = QLabel("kfir.frenkel@gmail.com", card)
-        self.mail.setGeometry(28, 362, 240, 40)
+        self.mail.setGeometry(28, 348, 250, 36)
         self.mail.setStyleSheet("""
             color: #d7e1ef;
             font-size: 13px;
@@ -93,7 +93,7 @@ class AboutWindow(QWidget):
         logo = QPixmap(str(BASE_DIR / "linkedin.svg"))
         self.linkedin_button.setIcon(QIcon(logo))
         self.linkedin_button.setIconSize(QSize(24, 24))
-        self.linkedin_button.setGeometry(288, 362, 40, 40)
+        self.linkedin_button.setGeometry(288, 346, 40, 40)
         self.linkedin_button.setStyleSheet("""
             QPushButton {
                 background-color: #172a43;
@@ -108,10 +108,48 @@ class AboutWindow(QWidget):
             }
         """)
         self.linkedin_button.setToolTip("Open LinkedIn profile")
+        self.linkedin_button.setCursor(Qt.PointingHandCursor)
         self.linkedin_button.clicked.connect(self._open_linkedin)
+
+        self.repo_link = QLabel(
+            '<a href="https://github.com/kfir1313/EX4.2" style="color: #67e8f9; text-decoration: none;">GitHub: EX4.2 Repository</a>',
+            card,
+        )
+        self.repo_link.setOpenExternalLinks(True)
+        self.repo_link.setCursor(Qt.PointingHandCursor)
+        self.repo_link.setGeometry(28, 396, 250, 36)
+        self.repo_link.setStyleSheet("""
+            color: #67e8f9;
+            font-size: 13px;
+        """)
+
+        self.github_button = QPushButton(card)
+        github_logo = QPixmap(str(BASE_DIR / "github.svg"))
+        self.github_button.setIcon(QIcon(github_logo))
+        self.github_button.setIconSize(QSize(24, 24))
+        self.github_button.setGeometry(288, 394, 40, 40)
+        self.github_button.setStyleSheet("""
+            QPushButton {
+                background-color: #172a43;
+                border-radius: 8px;
+                padding: 6px;
+            }
+            QPushButton:hover {
+                background-color: #203b5a;
+            }
+            QPushButton:pressed {
+                background-color: #12243a;
+            }
+        """)
+        self.github_button.setToolTip("Open GitHub repository")
+        self.github_button.setCursor(Qt.PointingHandCursor)
+        self.github_button.clicked.connect(self._open_github)
 
     def _open_linkedin(self):
         webbrowser.open("https://www.linkedin.com/in/kfir-frenkel-9b987a229/")
+
+    def _open_github(self):
+        webbrowser.open("https://github.com/kfir1313/EX4.2")
 
 
 if __name__ == "__main__":
