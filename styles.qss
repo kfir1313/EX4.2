@@ -1,0 +1,53 @@
+/* ==========================================================================
+   Clean & Simple Styling for PySide6 Application
+   ========================================================================== */
+
+/* Main Window & General Widget Styling */
+QMainWindow {
+    background-color: #f3f5f9;
+}
+
+QWidget {
+    color: #202b3c;
+    font-family: "Segoe UI";
+    font-size: 10pt;
+}
+
+/* File Path Display */
+QLineEdit {
+    background-color: white;
+    border: 1px solid #cbd3df;
+    border-radius: 6px;
+    padding: 8px 10px;
+    selection-background-color: #2457a7;
+}
+
+QLineEdit:focus {
+    border: 1px solid #2457a7;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #2457a7;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 9px 16px;
+    font-weight: 600;
+}
+
+QPushButton:hover {
+    background-color: #194786;
+}
+
+QPushButton:pressed {
+    background-color: #123766;
+}
+
+/* Status Bar */
+QStatusBar {
+    background-color: #e9edf4;
+    color: #526176;
+    border-top: 1px solid #d8dee8;
+    font-size: 12px;
+}
