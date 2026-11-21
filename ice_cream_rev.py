@@ -16,8 +16,8 @@ from PySide6.QtWidgets import (
 
 import matplotlib
 matplotlib.use("QtAgg")
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
 
 from About import AboutWindow
 
@@ -107,9 +107,12 @@ class MainWindow(QMainWindow):
         main_layout.addLayout(controls_layout)
 
         # --- Matplotlib Canvas ---
-        self.figure = Figure(figsize=(8, 5), dpi=100)
+        fig, ax = plt.subplots(1, 1)
+        fig.set_size_inches(8, 5)
+        fig.set_dpi(100)
+        self.figure = fig
+        self.ax = ax
         self.canvas = FigureCanvas(self.figure)
-        self.ax = self.figure.add_subplot(111)
 
         main_layout.addWidget(self.canvas, stretch=1)
 
